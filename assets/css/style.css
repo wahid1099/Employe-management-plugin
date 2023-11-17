@@ -1,0 +1,109 @@
+/* admin-style.css */
+
+.my-admin-button {
+  background-color: #0073aa;
+  color: #ffffff;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.my-admin-button:hover {
+  background-color: #005080;
+}
+#searchInput {
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+/* Card Container */
+.card-container {
+  display: flex;
+}
+
+/* Card Styles */
+.card {
+  width: 400px;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin: 10px;
+  color: #fff;
+}
+
+/* Due Card */
+.due-card {
+  background-color: #ab0cc6; /* Light red */
+}
+
+/* Paid Card */
+.paid-card {
+  background-color: #09776c; /* Light green */
+}
+
+/* Heading Styles */
+h3 {
+  text-align: center;
+}
+
+/* Amount Styles */
+.amount {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 10px 0;
+  text-align: center;
+}
+
+/* Additional Styling (Feel free to customize) */
+body {
+  font-family: "Arial", sans-serif;
+
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 900px !important;
+  margin: 20px auto;
+}
+.employee-dashboard table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.employee-dashboard th,
+.employee-dashboard td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.employee-dashboard th {
+  background-color: #f2f2f2;
+}
+.filter-container-div {
+  display: flex;
+  justify-content: space-between;
+}
+.approved-button {
+  background-color: #4caf50; /* Green background color */
+  color: white; /* White text color */
+  padding: 8px 16px; /* Padding */
+  border: none; /* No border */
+  border-radius: 5px; /* Rounded corners */
+
+  cursor: not-allowed;
+}
+.pending-button {
+  background-color: #e41047; /* Green background color */
+  color: white; /* White text color */
+  padding: 8px 16px; /* Padding */
+  border: none; /* No border */
+  border-radius: 5px; /* Rounded corners */
+
+  cursor: not-allowed;
+}

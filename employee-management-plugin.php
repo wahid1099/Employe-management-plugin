@@ -34,8 +34,8 @@ $sql = "CREATE TABLE $table_name (
     date DATE NOT NULL,
     employee_email VARCHAR(255) NOT NULL,
     status VARCHAR(20) NOT NULL,
-    payment_status VARCHAR(20) NOT NULL,
     amount DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    time_interval VARCHAR(50) NOT NULL,
     PRIMARY KEY (id)
 ) $charset_collate;";
 

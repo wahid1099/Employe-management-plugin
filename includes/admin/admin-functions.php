@@ -1,4 +1,6 @@
 <?php
+
+
 // ... (Previous code remains the same)
 // Add admin menu
 function add_employee_management_menu() {
@@ -39,7 +41,7 @@ function handle_appointment_submission() {
     $employee_email = sanitize_email($_POST['employee_email']);
     $amount = sanitize_text_field($_POST['amount']);
     $status = sanitize_text_field($_POST['status']);
-    $payment_status = 'pending';
+    $time_interval = sanitize_text_field($_POST['time_interval']);
 
     // Validate and save data to the database
     if (!empty($name) && !empty($address) && !empty($date) && !empty($employee_email) && !empty($amount) && !empty($status)) {
@@ -52,7 +54,7 @@ function handle_appointment_submission() {
                 'employee_email' => $employee_email,
                 'amount' => $amount,
                 'status' => $status,
-                'payment_status' => $payment_status,
+                'time_interval' => $time_interval,
             ),
             array('%s', '%s', '%s', '%s', '%s', '%s', '%s')
         );
@@ -86,22 +88,38 @@ function update_appointment_status($appointment_id, $status) {
 }
 
 
-// Function to update payment status
-function update_payment_status($appointment_id, $payment_status) {
+function delete_appointment_function($appointment_id) {
     global $wpdb;
 
-    // Sanitize inputs
-    $payment_status = sanitize_text_field($payment_status);
+    // Sanitize the appointment ID
+    $appointment_id = absint($appointment_id);
 
-    // Update payment status in the database
-    $wpdb->update(
+    // Perform the deletion logic
+    $deleted = $wpdb->delete(
         $wpdb->prefix . 'employee_appointments',
-        array('payment_status' => $payment_status),
         array('id' => $appointment_id),
-        array('%s'),
         array('%d')
     );
+
+    return $deleted !== false;
 }
+
+
+// Function to format time interval
+function format_time_interval($time_interval) {
+    // Split the time interval string into start and end times
+    list($start, $end) = explode('-', $time_interval);
+
+    // Format the start and end times as am/pm
+    $formatted_start = date("h:00 A", strtotime("$start:00"));
+    $formatted_end = date("h:00 A", strtotime("$end:00"));
+
+    // Combine the formatted start and end times
+    $formatted_time_interval = "$formatted_start - $formatted_end";
+
+    return esc_html($formatted_time_interval);
+}
+
 
 
 // Function to display the admin appointment form
@@ -117,14 +135,27 @@ function display_admin_appointment_form() {
             <label for="address">Address:</label>
             <input type="text" name="address" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
 
-            <label for="date">Date:</label>
-            <input type="date" name="date" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
-
             <label for="employee_email">Employee Email:</label>
             <input type="email" name="employee_email" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
 
             <label for="amount">Amount:</label>
             <input type="text" name="amount" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
+
+            <label for="date">Date:</label>
+            <input type="date" name="date" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
+
+            <label for="time_interval">Time :</label>
+            <select name="time_interval" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
+                <option value="7-8">7:00 a.m. - 8:00 a.m.</option>
+                <option value="9-10">9:00 a.m. - 10:00 a.m.</option>
+                <option value="11-12">11:00 a.m. - 12:00 a.m.</option>
+                <option value="12-13">12:00 p.m. - 1:00 p.m.</option>
+                <option value="13-14">1:00 p.m. - 2:00 p.m.</option>
+                <option value="14-15">3:00 p.m. - 4:00 p.m.</option>
+                <option value="15-16">4:00 p.m. - 5:00 p.m.</option>
+                <option value="16-17">5:00 p.m. - 6:00 p.m.</option>
+             
+            </select>
 
             <label for="status">Status:</label>
             <select name="status" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
@@ -165,15 +196,17 @@ function display_existing_appointments() {
         <table id="appointments-table" class="wp-list-table widefat fixed striped">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Address</th>
-                    <th>Date</th>
+                    <th>Client Name</th>
+                    <th>Client Address</th>
+                    <th>Appoinment Date</th>
+                    <th>Appoinment Time </th>
                     <th>Employee Email</th>
                     <th>Status</th>
-                    <th>Payment Status</th>
+                    
                     <th>Amount</th>
                     <th>Update Status</th>
-                    <th>Update Payment Status</th>
+                    <th>Action</th>
+                  
                 </tr>
             </thead>
             <tbody>
@@ -181,14 +214,22 @@ function display_existing_appointments() {
                 foreach ($appointments as $appointment) {
                     ?>
                     <tr>
-                        <td><?php echo esc_html($appointment->name); ?></td>
-                        <td><?php echo esc_html($appointment->address); ?></td>
-                        <td><?php echo esc_html($appointment->date); ?></td>
-                        <td><?php echo esc_html($appointment->employee_email); ?></td>
-                        <td><?php echo esc_html($appointment->status); ?></td>
-                        <td><?php echo esc_html($appointment->payment_status); ?></td>
-                        <td><?php echo esc_html($appointment->amount); ?></td>
+                        <td style="font-weight: bold;"><?php echo esc_html($appointment->name); ?></td>
+                        <td style="font-weight: bold;"><?php echo esc_html($appointment->address); ?></td>
+                        <td style="font-weight: bold;"><?php echo esc_html($appointment->date); ?></td>
+                        <td style="font-weight: bold;"><?php echo esc_html(format_time_interval($appointment->time_interval)); ?></td>
+
+
+
+                        <td style="font-weight: bold;"><?php echo esc_html($appointment->employee_email); ?></td>
+                        <td style="font-weight: bold;"><?php echo esc_html($appointment->status); ?></td>
+                        
+                        <td style="font-weight: bold;">$<?php echo esc_html($appointment->amount); ?></td>
                         <td>
+                        <?php if ($appointment->status === 'approved') : ?>
+                                <!-- Show "approved" text instead of the dropdown for approved status -->
+                                <button type="button" class="approved-button" disabled>Approved</button>
+                            <?php else : ?>
                             <form method="post" action="">
                                 <input type="hidden" name="appointment_id" value="<?php echo esc_attr($appointment->id); ?>">
                                 <select name="status">
@@ -199,24 +240,19 @@ function display_existing_appointments() {
                                 <?php wp_nonce_field('update_status_nonce', 'update_status_nonce'); ?>
                                 <input type="submit" name="update_status" value="Update" class="my-admin-button" style="background-color: #0073aa; color: #ffffff; padding: 10px 20px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer;">
                             </form>
-                        </td>
-                        <td>
-                            <?php if ($appointment->payment_status === 'approved') : ?>
-                                <!-- Show "approved" text instead of the dropdown for approved status -->
-                                <button type="button" class="approved-button" disabled>Approved</button>
-                            <?php else : ?>
-                                <form method="post" action="">
-                                    <input type="hidden" name="appointment_id" value="<?php echo esc_attr($appointment->id); ?>">
-                                    <select name="payment_status">
-                                        <option value="pending" <?php echo ($appointment->payment_status === 'pending') ? 'selected' : ''; ?>>Pending</option>
-                                        <option value="approved" <?php echo ($appointment->payment_status === 'approved') ? 'selected' : ''; ?>>Approved</option>
-                                        <!-- Add more options as needed -->
-                                    </select>
-                                    <input type="submit" name="update_payment_status" class="my-admin-button" value="Update" style="background-color:#910707; color: #ffffff; padding: 10px 20px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer; margin-top: 5px;">
-                                </form>
                             <?php endif; ?>
                         </td>
-                     
+                        
+                        
+                        <td>
+                            <form method="post" action="">
+                                <input type="hidden" name="appointment_id" value="<?php echo esc_attr($appointment->id); ?>">
+                                <button type="submit" name="delete_appointment" class="my-delete-button" onclick="return confirm('Are you sure you want to delete this appointment?');"  style="background-color: #d63638; color: #ffffff; padding: 10px 20px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer;">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+
 
                     </tr>
                     <?php
@@ -306,8 +342,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         update_appointment_status($appointment_id, $status);
     }
 
-    if (isset($_POST['update_payment_status'])) {
-        $payment_status = isset($_POST['payment_status']) ? sanitize_text_field($_POST['payment_status']) : '';
-        update_payment_status($appointment_id, $payment_status);
+   
+    
+}
+
+
+
+// Process status and amount update form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $appointment_id = isset($_POST['appointment_id']) ? intval($_POST['appointment_id']) : 0;
+
+    if (isset($_POST['delete_appointment'])) {
+        // Code to delete the appointment
+        // Make sure to validate and sanitize the appointment ID before deletion
+        $deleted = delete_appointment_function($appointment_id);
+
+        if ($deleted) {
+            // Appointment deleted successfully
+            echo '<p>Appointment deleted successfully!</p>';
+            // You may want to redirect to avoid resubmission on page refresh
+            // wp_safe_redirect($_SERVER['REQUEST_URI']);
+            // exit;
+        } else {
+            // Error deleting appointment, handle accordingly
+            echo 'Error deleting appointment';
+        }
     }
 }

@@ -1,5 +1,7 @@
 <?php
 // Shortcode for employee dashboard
+// Function to format time interval
+
 function employee_dashboard_shortcode() {
     ob_start(); // Start output buffering
 
@@ -14,18 +16,18 @@ function employee_dashboard_shortcode() {
            <h3>Welcome, <?php echo esc_html(wp_get_current_user()->display_name); ?>!</h3>
 
             <div class="container">
-        <h5>Payment Information</h5>
-        <div class="card-container">
+            <h5>Payment Information</h5>
+            <div class="card-container">
 
-        <div class="card due-card">
-            <h3>Due</h3>
-            <div class="amount"> $<?php echo esc_html($payment_data['total_payable']); ?></div>
-        </div>
-            <div class="card paid-card">
-            <h3>Paid</h3>
-            <div class="amount">$<?php echo esc_html($payment_data['total_paid']); ?></div>
-        
-        </div>
+            <div class="card due-card">
+                <h3>Due</h3>
+                <div class="amount"> $<?php echo esc_html($payment_data['total_payable']); ?></div>
+            </div>
+                <div class="card paid-card">
+                <h3>Paid</h3>
+                <div class="amount">$<?php echo esc_html($payment_data['total_paid']); ?></div>
+            
+            </div>
              
        
         </div>
@@ -37,34 +39,28 @@ function employee_dashboard_shortcode() {
                 <h6>Appointments</h6>
                 <div class="filter-container-div">
                 <div class="filter-container">
-        <label for="status-filter">Filter by Status:</label>
-         <select id="status-filter">
-        <option value="">All</option>
-        <option value="pending">Pending</option>
-        <option value="approved">Approved</option>
-             </select>
-            </div>
-            <div class="payment-status-filter-container">
-    <label for="payment-status-filter">Filter by Payment Status:</label>
-    <select id="payment-status-filter">
-        <option value="">All</option>
-        <option value="pending">Pending</option>
-        <option value="approved">Approved</option>
-    </select>
-</div>
-                </div>
+                    <label for="status-filter">Filter by Status:</label>
+                    <select id="status-filter">
+                    <option value="">All</option>
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                        </select>
+                        </div>
+                        </div>
+               
                
 
 
                 <table id="employee-appoiment-table">
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Name</th>
-                            <th>Location</th>
+                            <th>Appoinment Date</th>
+                            <th>Appoinment Time</th>
+                           
+                            <th>Client Name</th>
+                            <th>Client Location</th>
                             <th>Ammount</th>
                             <th>Status</th>
-                            <th>Payment Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -76,32 +72,32 @@ function employee_dashboard_shortcode() {
                             ?>
                             <tr>
                                 <td><?php echo esc_html($appointment->date); ?></td>
+                                <td style="font-weight: bold;"><?php echo esc_html(format_time_interval($appointment->time_interval)); ?></td>
                                 <td><?php echo esc_html($appointment->name); ?></td>
                                 <td><?php echo esc_html($appointment->address); ?></td>
                                 <td><?php echo esc_html($appointment->amount); ?></td>
-                                <td><?php echo esc_html($appointment->status); ?></td>
-                                <!-- <td><?php echo esc_html($appointment->payment_status); ?></td> -->
+                              
                                 <td>
-    <?php
-  
+                                <?php
+                            
 
-    if ($appointment->payment_status === 'approved') {
-        echo '<button class="approved-button">Approved</button>';
-    } elseif ($appointment->payment_status === 'pending') {
-        echo '<button class="pending-button">Pending</button>';    }
-    ?>
-</td>
+                                if ($appointment->status === 'approved') {
+                                    echo '<button class="approved-button">Approved</button>';
+                                } elseif ($appointment->status === 'pending') {
+                                    echo '<button class="pending-button">Pending</button>';    }
+                                ?>
+                            </td>
 
                             </tr>
                             <?php
                         }
                         ?>
                     </tbody>
-                </table>
+                 </table>
 
               
+       </div>
     </div>
-            </div>
             <?php
         } else {
             echo '<p>No employee data found.</p>';
@@ -113,6 +109,8 @@ function employee_dashboard_shortcode() {
     return ob_get_clean(); // Return the buffered content
 }
 add_shortcode('employee_dashboard', 'employee_dashboard_shortcode');
+
+
 
 // Function to get employee data by email
 function get_employee_data_by_email($email) {
@@ -131,6 +129,9 @@ function get_employee_data_by_email($email) {
     return $employee_data;
 }
 
+
+
+
 // Function to get upcoming appointments for an employee
 function get_all_appointments($employee_email) {
     global $wpdb;
@@ -148,25 +149,31 @@ function get_all_appointments($employee_email) {
 }
 
 
+
+
 // Function to calculate total payable and paid amounts for an employee
 function calculate_payment_amounts($employee_email) {
     global $wpdb;
 
     $table_name = $wpdb->prefix . 'employee_appointments';
 
+    // Calculate total payable amount for pending appointments
     $total_payable = $wpdb->get_var(
         $wpdb->prepare(
-            "SELECT SUM(amount) FROM $table_name WHERE employee_email = %s AND payment_status = 'pending'",
-            $employee_email
+            "SELECT SUM(amount) FROM $table_name WHERE employee_email = %s AND status = %s",
+            $employee_email,
+            'pending'
         )
-    );
+    ) ?? 0;
 
+    // Calculate total paid amount for approved appointments
     $total_paid = $wpdb->get_var(
         $wpdb->prepare(
-            "SELECT SUM(amount) FROM $table_name WHERE employee_email = %s AND payment_status = 'approved'",
-            $employee_email
+            "SELECT SUM(amount) FROM $table_name WHERE employee_email = %s AND status = %s",
+            $employee_email,
+            'approved'
         )
-    );
+    ) ?? 0;
 
     return array(
         'total_payable' => $total_payable,

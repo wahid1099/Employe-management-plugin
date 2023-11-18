@@ -20,13 +20,7 @@ jQuery(document).ready(function ($) {
   // Handle status filter change
   $("#status-filter").on("change", function () {
     var status = $(this).val();
-    table.column(4).search(status).draw(); // Assuming the status column is at index 5
-  });
-
-  // Handle payment status filter change
-  $("#payment-status-filter").on("change", function () {
-    var paymentStatus = $(this).val();
-    table.column(5).search(paymentStatus).draw(); // Assuming the payment status column is at index 5
+    table.column(5).search(status).draw(); // Assuming the status column is at index 5
   });
 
   table.DataTable({

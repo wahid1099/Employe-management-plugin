@@ -58,6 +58,49 @@ function handle_appointment_submission() {
             ),
             array('%s', '%s', '%s', '%s', '%s', '%s', '%s')
         );
+        if ($result !== false) {
+            $to = $employee_email;
+            $subject = 'New Appointment Added';
+            $table_name = $wpdb->prefix . 'employee_appointments';
+        
+            // Fetch the appointment details for inclusion in the email
+            $appointment_details = $wpdb->get_row(
+                $wpdb->prepare(
+                    "SELECT * FROM $table_name WHERE employee_email = %s AND id = %d",
+                    $employee_email,
+                    $wpdb->insert_id  // Assuming the last inserted ID corresponds to the new appointment
+                )
+            );
+        
+            if ($appointment_details) {
+                // Build the email message with appointment details
+                $message = sprintf(
+                    "Dear Employee, a new appointment has been added.%1\$s%1\$sAppointment Details:%1\$s
+                    Date: %2\$s%1\$s
+                    Time: %3\$s%1\$s
+                    Client Name: %4\$s%1\$s
+                    Client Address: %5\$s%1\$s
+                    Amount: $%6\$s",
+                    "\r\n",
+                    esc_html($appointment_details->date),
+                    esc_html(format_time_interval($appointment_details->time_interval)),
+                    esc_html($appointment_details->name),
+                    esc_html($appointment_details->address),
+                    esc_html($appointment_details->amount)
+                );
+        
+                $headers = array('Content-Type: text/html; charset=UTF-8');
+        
+                // Send the email
+                wp_mail($to, $subject, $message, $headers);
+            } else {
+                // Handle error fetching appointment details
+                echo 'Error fetching appointment details for email';
+            }
+        }
+        
+        
+        
 
         if ($result === false) {
             $wpdb->show_errors();
@@ -357,15 +400,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Make sure to validate and sanitize the appointment ID before deletion
         $deleted = delete_appointment_function($appointment_id);
 
-        if ($deleted) {
-            // Appointment deleted successfully
-            echo '<p>Appointment deleted successfully!</p>';
-            // You may want to redirect to avoid resubmission on page refresh
-            // wp_safe_redirect($_SERVER['REQUEST_URI']);
-            // exit;
-        } else {
-            // Error deleting appointment, handle accordingly
-            echo 'Error deleting appointment';
-        }
+     
+        
+        
     }
 }

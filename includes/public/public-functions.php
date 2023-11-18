@@ -20,11 +20,11 @@ function employee_dashboard_shortcode() {
             <div class="card-container">
 
             <div class="card due-card">
-                <h3>Due</h3>
+                <h3 style="color: white;">Due</h3>
                 <div class="amount"> $<?php echo esc_html($payment_data['total_payable']); ?></div>
             </div>
                 <div class="card paid-card">
-                <h3>Paid</h3>
+                <h3 style="color: white;">Paid</h3>
                 <div class="amount">$<?php echo esc_html($payment_data['total_paid']); ?></div>
             
             </div>
@@ -85,6 +85,8 @@ function employee_dashboard_shortcode() {
                                     echo '<button class="approved-button">Approved</button>';
                                 } elseif ($appointment->status === 'pending') {
                                     echo '<button class="pending-button">Pending</button>';    }
+                                    elseif ($appointment->status === 'ongoing') {
+                                        echo '<button class="pending-button" style="background-color:#021a30">Ongoing</button>';    }
                                 ?>
                             </td>
 
@@ -157,14 +159,16 @@ function calculate_payment_amounts($employee_email) {
 
     $table_name = $wpdb->prefix . 'employee_appointments';
 
-    // Calculate total payable amount for pending appointments
+    // Calculate total payable amount for pending and ongoing appointments
     $total_payable = $wpdb->get_var(
         $wpdb->prepare(
-            "SELECT SUM(amount) FROM $table_name WHERE employee_email = %s AND status = %s",
+            "SELECT SUM(amount) FROM $table_name WHERE employee_email = %s AND (status = %s OR status = %s)",
             $employee_email,
-            'pending'
+            'pending',
+            'ongoing'
         )
     ) ?? 0;
+
 
     // Calculate total paid amount for approved appointments
     $total_paid = $wpdb->get_var(

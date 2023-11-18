@@ -68,19 +68,45 @@ function handle_appointment_submission() {
                 $wpdb->prepare(
                     "SELECT * FROM $table_name WHERE employee_email = %s AND id = %d",
                     $employee_email,
-                    $wpdb->insert_id  // Assuming the last inserted ID corresponds to the new appointment
+                    $wpdb->insert_id // Assuming the last inserted ID corresponds to the new appointment
                 )
             );
         
             if ($appointment_details) {
-                // Build the email message with appointment details
+                // Build the email message with appointment details in a styled table
                 $message = sprintf(
                     "Dear Employee, a new appointment has been added.%1\$s%1\$sAppointment Details:%1\$s
-                    Date: %2\$s%1\$s
-                    Time: %3\$s%1\$s
-                    Client Name: %4\$s%1\$s
-                    Client Address: %5\$s%1\$s
-                    Amount: $%6\$s",
+                    <style>
+                        table {
+                            font-family: Arial, sans-serif;
+                            border-collapse: collapse;
+                            width: 100%;
+                        }
+                        th, td {
+                            border: 1px solid #dddddd;
+                            text-align: left;
+                            padding: 8px;
+                        }
+                        th {
+                            background-color: #f2f2f2;
+                        }
+                    </style>
+                    <table>
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Client Name</th>
+                            <th>Client Address</th>
+                            <th>Amount</th>
+                        </tr>
+                        <tr>
+                            <td>%2\$s</td>
+                            <td>%3\$s</td>
+                            <td>%4\$s</td>
+                            <td>%5\$s</td>
+                            <td>$%6\$s</td>
+                        </tr>
+                    </table>",
                     "\r\n",
                     esc_html($appointment_details->date),
                     esc_html(format_time_interval($appointment_details->time_interval)),
@@ -98,6 +124,7 @@ function handle_appointment_submission() {
                 echo 'Error fetching appointment details for email';
             }
         }
+        
         
         
         
@@ -205,6 +232,7 @@ function display_admin_appointment_form() {
                 <option value="pending">Pending</option>
                 <option value="approved">Approved</option>
                 <option value="ongoing">Ongoing</option>
+                <option value="paid">Paid</option>
             </select>
 
             <br>
@@ -269,16 +297,18 @@ function display_existing_appointments() {
                         
                         <td style="font-weight: bold;">$<?php echo esc_html($appointment->amount); ?></td>
                         <td>
-                        <?php if ($appointment->status === 'approved') : ?>
+                        <?php if ($appointment->status === 'paid') : ?>
                                 <!-- Show "approved" text instead of the dropdown for approved status -->
-                                <button type="button" class="approved-button" disabled>Approved</button>
+                                <button type="button" class="approved-button" disabled>Paid</button>
                             <?php else : ?>
                             <form method="post" action="">
                                 <input type="hidden" name="appointment_id" value="<?php echo esc_attr($appointment->id); ?>">
                                 <select name="status">
                                     <option value="pending" <?php selected($appointment->status, 'pending'); ?>>Pending</option>
-                                    <option value="approved" <?php selected($appointment->status, 'approved'); ?>>Approved</option>
+                                  
                                     <option value="ongoing" <?php selected($appointment->status, 'ongoing'); ?>>Ongoing</option>
+                                    <option value="approved" <?php selected($appointment->status, 'approved'); ?>>Approved</option>
+                                    <option value="paid" <?php selected($appointment->status, 'paid'); ?>>Paid</option>
                                 </select>
                                 <?php wp_nonce_field('update_status_nonce', 'update_status_nonce'); ?>
                                 <input type="submit" name="update_status" value="Update" class="my-admin-button" style="background-color: #0073aa; color: #ffffff; padding: 10px 20px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer;">

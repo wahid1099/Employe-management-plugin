@@ -90,7 +90,7 @@ body {
   justify-content: space-between;
 }
 .approved-button {
-  background-color: #4caf50; /* Green background color */
+  background-color: rgb(23, 75, 217); /* Green background color */
   color: white; /* White text color */
   padding: 8px 16px; /* Padding */
   border: none; /* No border */

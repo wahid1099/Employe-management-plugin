@@ -2,7 +2,7 @@
 /*
 Plugin Name: Employee Management
 Description: Employee appointment and payment management plugin.
-Version: 1.0.3
+Version: 1.0.4
 Author: MD WAHID
 */
 

@@ -43,7 +43,9 @@ function employee_dashboard_shortcode() {
                     <select id="status-filter">
                     <option value="">All</option>
                     <option value="pending">Pending</option>
+                    <option value="ongoing">Ongoing</option>
                     <option value="approved">Approved</option>
+                    <option value="paid">Paid</option>
                         </select>
                         </div>
                         </div>
@@ -87,6 +89,8 @@ function employee_dashboard_shortcode() {
                                     echo '<button class="pending-button">Pending</button>';    }
                                     elseif ($appointment->status === 'ongoing') {
                                         echo '<button class="pending-button" style="background-color:#021a30">Ongoing</button>';    }
+                                        elseif ($appointment->status === 'paid') {
+                                            echo '<button class="pending-button" style="background-color:#21b217">Paid</button>';    }
                                 ?>
                             </td>
 
@@ -162,12 +166,15 @@ function calculate_payment_amounts($employee_email) {
     // Calculate total payable amount for pending and ongoing appointments
     $total_payable = $wpdb->get_var(
         $wpdb->prepare(
-            "SELECT SUM(amount) FROM $table_name WHERE employee_email = %s AND (status = %s OR status = %s)",
+            "SELECT SUM(amount) FROM $table_name WHERE employee_email = %s AND (status = %s OR status = %s OR status = %s)",
             $employee_email,
             'pending',
-            'ongoing'
+            'ongoing',
+            'approved'
         )
     ) ?? 0;
+    
+    
 
 
     // Calculate total paid amount for approved appointments
@@ -175,7 +182,7 @@ function calculate_payment_amounts($employee_email) {
         $wpdb->prepare(
             "SELECT SUM(amount) FROM $table_name WHERE employee_email = %s AND status = %s",
             $employee_email,
-            'approved'
+            'paid'
         )
     ) ?? 0;
 
